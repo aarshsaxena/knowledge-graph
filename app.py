@@ -1,31 +1,31 @@
 import streamlit as st
 from knowledge_graph import KnowledgeGraphBuilder
-import PyPDF2
 
-def extract_text_from_pdf(pdf_file):
-    """Extracts text from a PDF file."""
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text()
-    return text
+# Streamlit Interface
+def main():
+    st.title("Knowledge Graph Builder")
 
-# App title and introduction
-st.title("Automated Knowledge Graph Builder")
-st.write("Upload a structured PDF document to generate and visualize a knowledge graph.")
+    uploaded_file = st.file_uploader("Upload a PDF file:", type=["pdf"])
+    target_entity = st.text_input("Enter the target entity:")
 
-# File upload widget
-uploaded_file = st.file_uploader("Upload your PDF document", type=["pdf"])
+    if uploaded_file and st.button("Build Knowledge Graph"):
+        kg_builder = KnowledgeGraphBuilder()
+        
+        # Extract text from the uploaded PDF
+        with st.spinner("Extracting text from PDF..."):
+            text = kg_builder.extract_text_from_pdf(uploaded_file)
+        
+        # Process the document
+        with st.spinner("Processing document..."):
+            kg_builder.process_document(text)
 
-if uploaded_file:
-    # Extract text from the uploaded PDF
-    text = extract_text_from_pdf(uploaded_file)
-    st.text_area("Extracted Document Content", text, height=300)
+        # Filter graph for all links
+        with st.spinner("Filtering graph for target entity..."):
+            all_links_graph = kg_builder.filter_graph_for_all_links(target_entity)
 
-    # Initialize and process the document
-    st.write("### Knowledge Graph Visualization")
-    kg_builder = KnowledgeGraphBuilder()
-    kg_builder.process_document(text)
+        # Visualize the graph
+        kg_builder.visualize_graph(all_links_graph, target_entity)
 
-    # Visualize the filtered knowledge graph
-    kg_builder.visualize_graph()
+
+if __name__ == "__main__":
+    main()
